@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cmbot Administration System</title>
+</head>
+<style>
+
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+    * {
+        padding: 0;
+        margin: 0;
+        font-family: "Poppins";
+    }
+
+    body {
+        display: flex;
+        flex-flow: column nowrap;
+        background-color: #202731;
+        overflow-y: scroll;
+    }
+
+    body::-webkit-scrollbar {
+    display: none;
+    }
+
+    header {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: end;
+        align-items: center;
+        width: 100%;
+        height: 5vh;
+        background-color: #6067E0;
+        margin-bottom: 20px;
+    }
+
+    header a {
+        color: white;
+        text-decoration: none;
+        font-size: 1.2rem;
+        text-align: center;
+        margin-right: 10px;
+    }
+
+    main {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex-flow: column nowrap;
+        width: 100%;
+        height: 95vh;
+    }
+
+    table {
+        width: 98vw;
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+        border-collapse: collapse;
+        overflow: hidden;
+        box-shadow: 0px 0px 8px rgba(0,0,0,0.2);
+        margin-bottom: 20px;
+    }
+
+    table tr {
+        transition: 0.3s ease-in;
+    }
+
+    table th input {
+        width: 5rem;
+        background-color: #6067E0;
+        border: none;
+        outline: none;
+        color: white;
+        text-align: center;
+    }
+
+    table th {
+        background-color: #6067E0;
+        color: white;
+        font-size: 1.1rem;
+        padding: 20px;
+    }
+
+    table td {
+        color: white;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        padding-right: 7px;
+    }
+
+    table td.expand {
+        font-size: 0.8rem;
+    }
+
+    table tr:hover {
+        background-color: #293340;
+    }
+
+    .selected , .selected:hover {
+        background-color: #313E54;
+    }
+
+    main button {
+        width: 40vw;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        outline: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        transition: 0.3s ease-in;
+    }
+
+    main button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+    }
+
+    main button#add , button#launcherAdd {
+        background-color: #87E060;
+    }
+
+    main button#remove , button#launcherCancel {
+        background-color: #FF5454;
+    }
+
+    main button#group {
+        background-color: #6067E0;
+    }
+
+    main div#launcher {
+        width: 95vw;
+        display: none;
+        flex-flow: column nowrap;
+        align-items: center;
+        box-shadow: 0px 0px 8px rgba(0,0,0,0.3);
+        border-radius: 10px;
+        background-color: #202731;
+    }
+
+    main div#launcher h1 {
+        width: 95vw;
+        color: white;
+        background-color: #6067E0;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    main div#launcherInputs {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-flow: row wrap;
+        margin-bottom: 10px;
+    }
+
+    main div#launcher input {
+        width: 45vw;
+        height: 2rem;
+        margin: 10px;
+        background-color: #293340;
+        box-shadow: 0px 0px 8px rgba(0,0,0,0.3);
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        text-align: center;
+        color: white;
+        transition: 0.3s ease-in;
+    }
+
+    main div#launcher input:focus {
+        border: 1px solid #6067E0;
+        box-shadow: 0px 0px 4px #6067E0;
+    }
+
+    footer {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+        color: #6067E0;
+        font-size: 1.rem;
+    }
+
+</style>
+<body>
+    
+    <header>
+        <a href="/groups">Grupos</a>
+    </header>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Número <br> <input type="text"></th>
+                    <th>Aluno <br> <input type="text"></th>
+                    <th>Nome <br> <input type="text"></th>
+                    <th>Turma <br> <input type="text"></th>
+                    <th>Codinome <br> <input type="text"></th>
+                    <th>CPF <br> <input type="text"></th>
+                    <th>Data de Nascimento <br> <input type="text"></th>
+                    <th>Email <br> <input type="text"></th>
+                    <th>Telefone <br> <input type="text"></th>
+                    <th>Posição <br> <input type="text" list="possitionList"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                    <tr>
+                        <td class="notEditable">{{row[0]}}</td> <!-- Número-->
+                        <td>{{row[1]}}</td> <!-- Nome de Querra-->
+                        <td>{{row[2]}}</td> <!-- Nome Completo-->
+                        <td class="clas">{{row[3]}}</td> <!-- Turma -->
+                        <td>{{row[4]}}</td> <!-- Codinome-->
+                        <td>{{row[5]}}</td> <!-- CPF-->
+                        <td class="data">{{row[6]}}</td> <!-- Data de Nascimento -->
+                        <td class="expand">{{ row[7] | safe_split('(Aluno)', 0) }}(Aluno)<br>{{ row[7] | safe_split('(Aluno)', 1) | safe_split('(Pai)', 0) }}(Pai)<br>  {{ row[7] | safe_split('(Aluno)', 1) | safe_split('(Pai)', 1) | safe_split('(Mãe)', 0) }}(Mãe)</td> <!-- Email - Aluno - Pai - Mãe -->
+                        <td class="expand">{{ row[8] | safe_split('(Aluno)', 0) }}(Aluno)<br>  {{ row[8] | safe_split('(Aluno)', 1) | safe_split('(Pai)', 0) }}(Pai) <br> {{ row[8] | safe_split('(Aluno)', 1) | safe_split('(Pai)', 1) | safe_split('(Mãe)', 0) }}(Mãe)</td> <!-- Telefone - Aluno - Pai - Mãe -->
+                        <td class="possition">{{row[9]}}</td> <!-- Posição / cargo -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div>
+            <button id="remove" onclick="remove()">Remover</button>
+            <button id="add" onclick="document.querySelector('#launcher').style.display='flex'">Adicionar</button>
+        </div>
+        <div>
+            <button id="group" onclick="group()">Criar Grupo</button>
+        </div>
+
+        <div id="launcher">
+            <h1>Adicionar Aluno</h1>
+            <div id="launcherInputs">
+                <input type="number" step="1" placeholder="Número" id="number">
+                <input type="text" placeholder="Nome de Guerra" id="student">
+                <input type="text" placeholder="Nome Completo" id="name">
+                <input type="text" placeholder="Turma" id="class">
+                <input type="text" placeholder="Codinome" id="codename">
+                <input type="text" placeholder="CPF" id="cpf">
+                <input type="date" placeholder="Data de Nascimento" id="born">
+                <input type="text" placeholder="Email do Aluno" type="email" id="studentEmail">
+                <input type="text" placeholder="Email do Pai" type="email" id="fatherEmail">
+                <input type="text" placeholder="Email da Mãe" type="email" id="motherEmail">
+                <input type="text" placeholder="Telefone do Aluno" id="studentPhone">
+                <input type="text" placeholder="Telefone do Pai" id="fatherPhone">
+                <input type="text" placeholder="Telefone da Mãe" id="motherPhone">
+                <input type="text" placeholder="Posição" list="possitionList" id="possition">
+            </div>
+            <div id="launcherButtons">
+                <button id="launcherCancel" onclick="document.querySelector('#launcher').style.display='none'">Cancelar</button>
+                <button id="launcherAdd" onclick="
+                let number = document.querySelector('#number').value ? document.querySelector('#number').value : '0'
+                let student = document.querySelector('#student').value ? document.querySelector('#student').value : '-'
+                let name = document.querySelector('#name').value ? document.querySelector('#name').value : '-'
+                let clas = document.querySelector('#class').value ? document.querySelector('#class').value : '-'
+                let codename = document.querySelector('#codename').value ? document.querySelector('#codename').value : '-'
+                let cpf = document.querySelector('#cpf').value ? document.querySelector('#cpf').value : '-'
+                let born = document.querySelector('#born').value ? document.querySelector('#born').value : '-'
+                let studentEmail = document.querySelector('#studentEmail').value ? document.querySelector('#studentEmail').value : '-'
+                let fatherEmail = document.querySelector('#fatherEmail').value ? document.querySelector('#fatherEmail').value : '-'
+                let motherEmail = document.querySelector('#motherEmail').value ? document.querySelector('#motherEmail').value : '-'
+                let studentNumber = document.querySelector('#studentPhone').value ? document.querySelector('#studentPhone').value : '-'
+                let fatherPhone = document.querySelector('#fatherPhone').value ? document.querySelector('#fatherPhone').value : '-'
+                let motherPhone = document.querySelector('#motherPhone').value ? document.querySelector('#motherPhone').value : '-'
+                let possition = document.querySelector('#possition').value ? document.querySelector('#possition').value : '-'
+
+                fetch(`/add?number=${number}&student=${student}&name=${name}&class=${clas}&codename=${codename}&cpf=${cpf}&born=${born}&studentEmail=${studentEmail}&fatherEmail=${fatherEmail}&motherEmail=${motherEmail}&studentPhone=${studentNumber}&fatherPhone=${fatherPhone}&motherPhone=${motherPhone}&possition=${possition}`)
+                .then( (response) => {if (response.ok) {location.reload()} } )
+                ">Adicionar</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script> <!-- Table Scripts -->
+
+        let edit = false
+        
+        let table = document.querySelector("table")
+        let td = document.querySelectorAll("td")
+        let th = document.querySelectorAll("th")
+        let tr = document.querySelectorAll("tr")
+
+        for (let i = 0; i < td.length; i++) { /* Adicionar a função editar e selecionar em todas as celulas */
+
+            td[i].addEventListener("click",function(){
+                if (edit) {return}
+
+                if (this.classList.contains("notEditable")) {if(!this.closest("tr").classList.contains("selected")) {this.closest("tr").classList.add("selected")} else {this.closest("tr").classList.remove("selected")};return} /* Selecionar*/
+
+                let tr = this.closest("tr")
+                let cell = this
+                let input = document.createElement("input")
+
+                /* Atributes */
+                if (this.classList.contains("possition")) {input.setAttribute("list","possitionList")}
+                if (this.classList.contains("data")) {input.setAttribute("type","date")}
+                if (this.classList.contains("expand")) {input = document.createElement("textarea");input.style.height = "6rem"; input.style.width = "25rem"}
+
+                input.style.textAlign = "center"
+                input.style.fontSize = "1.1rem"
+
+                input.value = this.innerText
+                this.innerText = ""
+
+                this.append(input)
+                input.select()
+
+                edit = true
+
+                input.onblur = function (){ /*Editar*/
+                    edit = false
+                    td[i].innerText = this.value
+                    this.remove()
+
+                    fetch(`/edit?number=${tr.children[0].innerText}&possition=${Array.from(tr.children).indexOf(cell)}&value=${this.value}`)
+                }
+
+                input.addEventListener("keypress",function (event){ /*Editar*/
+                    if (event.key != "Enter") {return}
+
+                    edit = false
+                    td[i].innerText = this.value
+                    this.remove()
+
+                    fetch(`/edit?number=${tr.children[0].innerText}&possition=${Array.from(tr.children).indexOf(cell)}&value=${this.value}`)
+                })
+
+            })
+
+        }
+
+        thInput = []
+        for (let i = 0; i < th.length; i++) {
+            thInput.push(th[i].children[1])
+
+            th[i].addEventListener("dblclick", function () {
+                this.children[1].value = ""
+                this.children[1].focus()
+            })
+        }
+
+        for (let i = 0; i < thInput.length; i++) {
+
+            thInput[i].addEventListener("input", function () {
+                let filter = thInput.indexOf(this)
+                let values = this.value.split("&")
+
+                for (let c = 1; c < tr.length; c++) {
+                    tr[c].style.display = "none"
+                }
+
+                for (let l = 0; l < values.length; l++) {
+                    for (let c = 1; c < tr.length; c++) {
+                        if (tr[c].children[filter].innerText.toLowerCase().includes(values[l].toLowerCase())) {tr[c].style.display = ""}
+                    }
+                }
+
+            })
+
+        }
+    </script>
+
+    <script> <!-- Button Scripts-->
+        function remove() {
+
+            if (!window.confirm("Deseja apagar todas as linhas selecionadas?")) {return}
+
+            tr = document.querySelectorAll(".selected")
+
+            for (let i = 0; i < tr.length; i++) {
+                fetch(`/remove?number=${tr[i].children[0].innerText}`)
+                .then((response) => {if (response.ok) {tr[i].remove()} else{window.alert(`erro em remover a coluna de número ${tr[i].children[0].innerText}`)} })
+            }
+
+        }
+
+        function group() {
+            let selected = document.querySelectorAll(".selected")
+            let number = []
+
+            if (!selected[0]) {
+                let selected = []
+
+                let tr = document.querySelectorAll("tr")
+
+                for (let i = 0; i < tr.length; i++) {
+                    if (tr[i].style.display != "none") {selected.push(tr[i])}
+                }
+
+                let memberNumber = prompt("Digite o número de integrantes em cada grupo - Deixe em branco caso queira adicionar todos os selecionados"); name=null
+                if (!memberNumber) {name = prompt("De o nome do grupo");memberNumber = null}
+
+                number.push(name)
+
+                for (let i = 1; i < selected.length;i++) {
+                    number.push(selected[i].children[0].innerText)
+                }
+
+                if (memberNumber) {number.push(memberNumber)}
+
+                if (memberNumber) {fetch("/makeGroup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(number)})}
+
+                return
+
+            }
+
+            name = prompt("De o nome do grupo")
+
+            number.push(name)
+
+            for (let i = 0; i < selected.length;i++) {
+                number.push(selected[i].children[0].innerText)
+            }
+
+            if (name) {fetch("/makeGroup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(number)})}
+
+        }
+        
+    </script>
+
+    <datalist id="possitionList">
+        <option value="Consueto">Consueto</option>
+        <option value="Júnior">Júnior</option>
+        <option value="Pleno">Pleno</option>
+        <option value="Sénior">Sénior</option>
+        <option value="Sec. EM">Sec. EM</option>
+        <option value="Vice EM">Vice EM</option>
+        <option value="Sec. EF">Sec. EF</option>
+        <option value="Vice EF">Vice EF</option>
+    </datalist>
+
+</body>
+</html>
