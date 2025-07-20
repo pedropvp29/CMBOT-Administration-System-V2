@@ -1,7 +1,10 @@
 from flask import Flask , render_template , request
-from os import chdir , path
+from os import chdir , path , makedirs , listdir
 from sqlite3 import connect
 from random import shuffle
+from json import load , dump
+from fitz import open as openPDF
+from fitz import Matrix
 
 chdir(path.dirname(__file__))
 
@@ -248,6 +251,62 @@ def groupNameChange():
     connection.commit()
     
     connection.close()
+    return "sucess"
+
+@app.route("/createPage")
+def createPage():
+    chdir("static/projects")
+    projects = listdir()
+    projects.remove("create.png")
+    chdir(path.dirname(__file__))
+    
+    return render_template("createPage.html",projects=projects)
+
+@app.route("/createProject")
+def createProject():
+    
+    name = request.args.get("name")
+
+    makedirs(f"static/projects/{name}")
+    with open(f"static/projects/{name}/config.json","w") as file:
+        file.write("{'objects':[]}")
+
+    return "sucess"
+
+@app.route("/project")
+def project():
+    
+    project = request.args.get("project")
+    
+    with open(f"static/projects/{project}/config.json") as file:
+        config = load(file)
+    
+    return render_template("projectPage.html",config=config,project=project)
+
+@app.route("/project/addPDF",methods=["POST"])
+def projectAddPDF():
+    
+    project = request.args.get("project")
+    
+    chdir(f"static/projects/{project}")
+    file = request.files.get("file")
+    file.save("pdf.pdf")
+    
+    pdf = openPDF("pdf.pdf")
+    pdf.load_page(0).get_pixmap(matrix=Matrix(4,4)).save("ico.png")
+    chdir(path.dirname(__file__))
+      
+    return "sucess"
+
+@app.route("/project/save",methods=["POST"])
+def projectSave():
+    
+    element = request.get_json()
+    project = request.args.get("project")
+    
+    with open(f"static/projects/{project}/config.json","w") as file:
+        dump(element,file)
+    
     return "sucess"
 
 app.run(debug=True)
