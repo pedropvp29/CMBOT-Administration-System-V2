@@ -1,10 +1,10 @@
 from flask import Flask , render_template , request
-from os import chdir , path , makedirs , listdir
+from os import chdir , path , makedirs , listdir , rmdir , remove
 from sqlite3 import connect
 from random import shuffle
 from json import load , dump
 from fitz import open as openPDF
-from fitz import Matrix
+from fitz import Matrix , Font , Point
 
 chdir(path.dirname(__file__))
 
@@ -37,8 +37,13 @@ def mainPage():
     cursor.execute("SELECT * FROM students")
     data = cursor.fetchall()
     
+    chdir("static/projects")
+    projects = listdir()
+    projects.remove("create.png")
+    chdir(path.dirname(__file__))
+    
     connection.close()
-    return render_template("mainPage.html",data=data)
+    return render_template("mainPage.html",data=data,projects=projects)
 
 @app.route("/edit")
 def editData():
@@ -269,7 +274,13 @@ def createProject():
 
     makedirs(f"static/projects/{name}")
     with open(f"static/projects/{name}/config.json","w") as file:
-        file.write("{'objects':[]}")
+        file.write('{"objects":[]}')
+
+    chdir(f"static/projects/{name}")
+    
+    makedirs("fonts")
+    
+    chdir(path.dirname(__file__))
 
     return "sucess"
 
@@ -278,10 +289,14 @@ def project():
     
     project = request.args.get("project")
     
+    chdir(f"static/projects/{project}/fonts")
+    fonts = listdir()
+    chdir(path.dirname(__file__))
+    
     with open(f"static/projects/{project}/config.json") as file:
         config = load(file)
     
-    return render_template("projectPage.html",config=config,project=project)
+    return render_template("projectPage.html",config=config,project=project,fonts=fonts)
 
 @app.route("/project/addPDF",methods=["POST"])
 def projectAddPDF():
@@ -307,6 +322,63 @@ def projectSave():
     with open(f"static/projects/{project}/config.json","w") as file:
         dump(element,file)
     
+    return "sucess"
+
+@app.route("/project/delete")
+def projectDelete():
+    
+    project = request.args.get("project")
+    
+    chdir(f"static/projects/{project}/fonts")
+    fonts = listdir()
+    
+    for font in fonts:
+        remove(font)    
+    
+    chdir(path.dirname(__file__))
+    chdir(f"static/projects/{project}")
+    rmdir("fonts")
+    
+    for file in listdir():
+        remove(file)
+        
+    chdir(path.dirname(__file__))
+    rmdir(f"static/projects/{project}")
+    
+    return "sucess"
+
+@app.route("/project/addFont",methods=["POST"])
+def projectAddFont():
+
+    project = request.args.get("project")
+
+    chdir(f"static/projects/{project}/fonts")
+
+    file = request.files.get("file")
+    file.save(f"{file.filename}")
+    
+    chdir(path.dirname(__file__))
+    
+    return "sucess"
+
+@app.route("/project/run",methods=["POST"])
+def projectRun():
+    
+    project = request.args.get("project")
+    selected = request.get_json()
+    
+    with open(f"static/projects/{project}/config.json") as file:
+        objects = load(file)["objects"]
+    
+    pdf = openPDF(f"static/projects/{project}/pdf.pdf")
+    
+    page = pdf.load_page(0)
+    
+    for object in objects:
+        page.insert_text((float(object["left"])/4,float(object["top"])/4),"teste",fontsize=float(object["font-size"])/4)
+    
+    pdf.save("teste.pdf")
+    pdf.close()
     return "sucess"
 
 app.run(debug=True)

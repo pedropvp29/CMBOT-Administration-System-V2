@@ -134,6 +134,10 @@
         background-color: #6067E0;
     }
 
+    main button#runProject {
+        background-color: #73D2AF;
+    }
+
     main div#launcher {
         width: 95vw;
         display: none;
@@ -187,6 +191,23 @@
         font-size: 1.rem;
     }
 
+    input#project {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%,-50%);
+        background-color: #313E54;
+        border: 1px solid #6067E0;
+        box-shadow: 0px 0px 8px rgba(0,0,0,0.2);
+        border-radius: 15px;
+        height: 3rem;
+        width: 500px;
+        text-align: center;
+        outline: none;
+        color: white;
+        font-size: 1.2rem;
+    }
+
 </style>
 <body>
     
@@ -235,6 +256,7 @@
         </div>
         <div>
             <button id="group" onclick="group()">Criar Grupo</button>
+            <button id="runProject" onclick="document.querySelector('#project').style.display=''">Rodar Projeto</button>
         </div>
 
         <div id="launcher">
@@ -278,6 +300,9 @@
                 ">Adicionar</button>
             </div>
         </div>
+
+        <input type="text" id="project" list="projectList" placeholder="Digite o nome do projeto a ser executado" style="display: none;" onkeydown="runProject(event)" >
+
 
     </main>
 
@@ -426,6 +451,31 @@
 
         }
         
+        function runProject(event) {
+
+            if (event.key != "Enter") {return}
+
+            let selected = document.querySelectorAll(".selected")
+            let project = document.querySelector("#project")
+
+            if (!selected[0]) {
+
+                selected = []
+
+                let tr = document.querySelectorAll("tr")
+                
+                for (let i = 1; i < tr.length; i++) {
+                   if (tr[i].style.display != "none") {selected.push(tr[i].children[0].innerText)}
+                }
+            }
+            
+            if (project.value) {fetch(`/project/run?project=${project.value}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(selected)})}
+
+            project.value = ""
+            project.style.display = "none"
+
+        }
+
     </script>
 
     <datalist id="possitionList">
@@ -437,6 +487,12 @@
         <option value="Vice EM">Vice EM</option>
         <option value="Sec. EF">Sec. EF</option>
         <option value="Vice EF">Vice EF</option>
+    </datalist>
+
+    <datalist id="projectList">
+        {% for project in projects %}
+            <option value="{{project}}"></option>
+        {% endfor %}
     </datalist>
 
 </body>

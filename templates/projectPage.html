@@ -9,6 +9,13 @@
 
     @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
+    {% for font in fonts %}
+    @font-face {
+        font-family: "{{ font.rsplit('.', 1)[0] }}";
+        src: url("{{url_for('static',filename='projects/'+project+'/fonts/'+font)}}");
+    }
+    {% endfor %}
+
     * {
         padding: 0;
         margin: 0;
@@ -103,6 +110,14 @@
         background-color: #87E060;
     }
 
+    nav button.delete {
+        background-color: #FF5454;
+    }
+
+    nav button.setFont {
+        background-color: #7DD2C0;
+    }
+
     nav table {
         width: 100%;
         box-shadow: 0px 0px 8px rgba(0,0,0,0.2);
@@ -167,11 +182,14 @@
             <button class="loadPDF" onclick="this.children[0].click()">Caregar PDF<input type="file" id="file" onchange="sendPDF()" style="display: none;" accept="application/pdf"></button>
             <button class="addInput" onclick="createTextGenerator()">Adicionar Texto</button>
             <button class="save" onclick="save()">Salvar</button>
+            <button class="setFont" onclick="this.children[0].click()">Adicionar Fonte<input type="file" id="fontFile" onchange="sendFont()" accept=".ttf" style="display: none;"></button>
+            <button class="delete" onclick="deleteProject()">Deletar Projeto</button>
             <table>
                 <thead>
                     <tr>
                         <th>informação</th>
                         <th>Font-Size</th>
+                        <th>Font-Family</th>
                         <th>Y</th>
                         <th>X</th>
                     </tr>
@@ -195,26 +213,31 @@
         element = {"objects":[]}
 
         {% for object in config["objects"] %}
-                element["objects"].push({"type":"{{object['type']}}","font-size":"{{object['font-size']}}","top":"{{object['top']}}","left":"{{object['left']}}"})
+                element["objects"].push({"type":"{{object['type']}}","font-size":"{{object['font-size']}}","top":"{{object['top']}}","left":"{{object['left']}}","font-family":"{{object['font-family']}}"})
         {% endfor %}
       
-        for (let i = 0; i < element["objects"].length;i++) {
+        img.onload = () => {
+            for (let i = 0; i < element["objects"].length;i++) {
 
-            let input = document.createElement("input")
+                let input = document.createElement("input")
 
-            imgContainer.append(input)
+                let scaleY = (img.height/img.naturalHeight)
+                let scaleX = (img.width/img.naturalWidth)
 
-            let scaleY = (img.height/img.naturalHeight)
-            let scaleX = (img.width/img.naturalWidth)
+                input.value = element["objects"][i]["type"]
+                input.style.height = element["objects"][i]["font-size"] * scaleY + "px"
+                input.style.fontSize = input.style.height
+                input.style.width = (element["objects"][i]["font-size"] * 7) * scaleX + "px"
+                input.style.top = element["objects"][i]["top"] * scaleY + "px"
+                input.style.left = element["objects"][i]["left"] * scaleX + "px"
+                input.style.fontFamily = element["objects"][i]["font-family"]
+                input.possition = element["objects"][i]
 
-            input.value = element["objects"][i]["type"]
-            input.style.height = element["objects"][i]["font-size"] * scaleY + "px"
-            input.style.fontSize = input.style.height
-            input.style.width = (element["objects"][i]["font-size"] * 7) * scaleX + "px"
-            input.style.top = element["objects"][i]["top"] * scaleY + "px"
-            input.style.left = element["objects"][i]["left"] * scaleX + "px"
+                input.addEventListener("input", function(){this.value = element["objects"][i]["type"]})
+                input.addEventListener("keydown",function(event){ if (event.key == "Delete") {element["objects"].splice(element["objects"].indexOf(this.possition),1);this.remove();loadTable()} })
 
-            input.addEventListener("input", function(){this.value = element["objects"][i]["type"]})
+                imgContainer.append(input)
+            }
         }
 
         window.addEventListener("resize",()=>{
@@ -281,16 +304,18 @@
             input.style.top = 50 * scaleY + "px"
             input.style.left = 50 * scaleX + "px"
 
-            element["objects"].push({"type":"none","top":"50","left":"50","font-size":"16"})
+            element["objects"].push({"type":"none","top":"50","left":"50","font-size":"16","font-family":"poppins"})
 
             input.value = "none"
             imgContainer.append(input)
 
-            let inputs = document.querySelector("#imgContainer").querySelector("input")
+            let inputs = document.querySelector("#imgContainer").querySelectorAll("input")
 
             for (let c = 0; c < inputs.length; c++) {
                 input = inputs[c]
+                input.possition = element["objects"][c]
                 input.addEventListener("input", function(){this.value = element["objects"][c]["type"]})
+                input.addEventListener("keydown",function(event){ if (event.key == "Delete") {element["objects"].splice(element["objects"].indexOf(this.possition),1);this.remove();loadTable()} })
             }
 
             loadTable()
@@ -305,7 +330,7 @@
             for (let object = 0; object < element["objects"].length; object ++) {
                 let tr = document.createElement("tr")
 
-                for (let i = 0; i < 4; i++) {
+                for (let i = 0; i < 5; i++) {
                     let td = document.createElement("td")
                     let input = document.createElement("input") 
 
@@ -332,7 +357,18 @@
 
                     })}
 
-                    if (i==2) {input.value = element["objects"][object]["top"];input.addEventListener("input",function(){
+                    if (i==2) {input.value = element["objects"][object]["font-family"];input.setAttribute("list","fonts");input.addEventListener("input",function(){
+                        element["objects"][object]["font-family"] = this.value
+                        let input = document.querySelector("#imgContainer").querySelectorAll("input")[object]
+
+                        input.style.fontFamily = element["objects"][object]["font-family"]
+
+                        console.log(input.style.fontFamily)
+                        console.log(element["objects"][object]["font-family"])
+
+                    })}
+
+                    if (i==3) {input.value = element["objects"][object]["top"];input.addEventListener("input",function(){
                         let imgContainer = document.querySelector("#imgContainer")
                         let img = document.querySelector("img")
                         let scaleY = (img.height/img.naturalHeight)
@@ -344,7 +380,7 @@
                         input.style.top = element["objects"][object]["top"] * scaleY + "px"
                     })}
 
-                    if (i==3) {input.value = element["objects"][object]["left"];input.addEventListener("input",function(){
+                    if (i==4) {input.value = element["objects"][object]["left"];input.addEventListener("input",function(){
                         let imgContainer = document.querySelector("#imgContainer")
                         let img = document.querySelector("img")
                         let scaleY = (img.height/img.naturalHeight)
@@ -370,6 +406,28 @@
             fetch(`/project/save?project=${project}`,{"method":"POST","headers":{"Content-Type":"application/json"},body:JSON.stringify(element)})
         }
 
+        function deleteProject() {
+            let project = new URLSearchParams(window.location.search).get("project")
+
+            if (window.confirm("Deseja mesmo deletar permanentemente o projeto atual")) {
+                fetch(`/project/delete?project=${project}`)
+                .then((response) => {if (response.ok) {window.location.href="/createPage"} })
+            }
+        }
+
+        function sendFont() {
+
+            let file = document.querySelector("#fontFile").files[0]
+            let project = new URLSearchParams(window.location.search).get("project")
+
+            let formData = new FormData()
+            formData.append("file",file)
+
+            fetch(`/project/addFont?project=${project}`,{method:"POST",body:formData})
+            .then((response)=>{ if (response.ok) {save();location.reload()} })
+
+        }
+
     </script>
 
     <datalist id="coluna">
@@ -387,6 +445,12 @@
         <option value="Telefone Pai">
         <option value="Telefone Mãe">
         <option value="Posição">
+    </datalist>
+
+    <datalist id="fonts">
+        {% for font in fonts %}
+            <option value="{{ font.rsplit('.', 1)[0] }}"></option>
+        {% endfor %}
     </datalist>
 
 </body>
